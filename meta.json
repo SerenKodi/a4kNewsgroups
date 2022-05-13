@@ -1,0 +1,27 @@
+{
+  "author": "a4k-openproject",
+  "version": "1.0.0",
+  "name": "a4kNewsgroups",
+  "update_directory": "",
+  "remote_meta": "",
+  "seren_version": "2.2.0",
+  "setup_extension": "configure.py",
+  "services": [],
+  "settings": [
+    {
+      "id": "easynews.username",
+      "type": "string",
+      "default": "",
+      "visible": true,
+      "label": "EasyNews Username"
+    },
+    {
+      "id": "easynews.password",
+      "type": "string",
+      "sensitive": true,
+      "default": "",
+      "visible": true,
+      "label": "EasyNews Password"
+    }
+  ]
+}
