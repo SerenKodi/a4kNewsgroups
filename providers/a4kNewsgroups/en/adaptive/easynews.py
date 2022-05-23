@@ -14,6 +14,7 @@ from urllib.parse import quote
 from providerModules.a4kNewsgroups import common
 
 from resources.lib.common import source_utils
+from resources.lib.modules.exceptions import PreemptiveCancellation
 
 _exclusions = ['soundtrack', 'gesproken', 'sample', 'trailer', 'extras only', 'ost']
 
@@ -145,8 +146,11 @@ class sources:
             for n in numbers[:2]:
                 queries.append("\"{}\" S{}E{}".format(show_title, n[0], n[1]))
 
-        for q in queries:
-            down_url, dl_farm, dl_port, files = self._make_query(q)
+        for query in queries:
+            try:
+                down_url, dl_farm, dl_port, files = self._make_query(query)
+            except PreemptiveCancellation:
+                self._return_results("episode", sources)
 
             for item in files:
                 source = self._process_item(item, down_url, dl_farm, dl_port)
@@ -162,7 +166,10 @@ class sources:
             return sources
 
         query = "\"{}\" {}".format(title, year)
-        down_url, dl_farm, dl_port, files = self._make_query(query)
+        try:
+                down_url, dl_farm, dl_port, files = self._make_query(query)
+            except PreemptiveCancellation:
+                self._return_results("episode", sources)
 
         for item in files:
             source = self._process_item(item, down_url, dl_farm, dl_port)
