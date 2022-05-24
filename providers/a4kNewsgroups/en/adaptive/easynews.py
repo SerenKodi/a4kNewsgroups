@@ -150,7 +150,7 @@ class sources:
             try:
                 down_url, dl_farm, dl_port, files = self._make_query(query)
             except PreemptiveCancellation:
-                self._return_results("episode", sources)
+                return self._return_results("episode", sources)
 
             for item in files:
                 source = self._process_item(item, down_url, dl_farm, dl_port)
@@ -167,9 +167,9 @@ class sources:
 
         query = "\"{}\" {}".format(title, year)
         try:
-                down_url, dl_farm, dl_port, files = self._make_query(query)
-            except PreemptiveCancellation:
-                self._return_results("episode", sources)
+            down_url, dl_farm, dl_port, files = self._make_query(query)
+        except PreemptiveCancellation:
+            return self._return_results("episode", sources)
 
         for item in files:
             source = self._process_item(item, down_url, dl_farm, dl_port)
