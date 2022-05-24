@@ -59,7 +59,12 @@ class sources:
             common.log('Could not authorize.')
         return auth
 
-    def _return_results(self, source_type, sources):
+    def _return_results(self, source_type, sources, preemptive=False):
+        if preemptive:
+            common.log(
+                "a4kNewsgroups.{}.easynews: cancellation requested".format(source_type),
+                "info",
+            )
         common.log(
             "a4kNewsgroups.{}.easynews: {}".format(source_type, len(sources)), "info"
         )
@@ -150,7 +155,7 @@ class sources:
             try:
                 down_url, dl_farm, dl_port, files = self._make_query(query)
             except PreemptiveCancellation:
-                return self._return_results("episode", sources)
+                return self._return_results("episode", sources, preemptive=True)
 
             for item in files:
                 source = self._process_item(item, down_url, dl_farm, dl_port)
@@ -169,7 +174,7 @@ class sources:
         try:
             down_url, dl_farm, dl_port, files = self._make_query(query)
         except PreemptiveCancellation:
-            return self._return_results("episode", sources)
+            return self._return_results("episode", sources, preemptive=True)
 
         for item in files:
             source = self._process_item(item, down_url, dl_farm, dl_port)
