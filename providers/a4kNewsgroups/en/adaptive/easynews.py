@@ -13,7 +13,14 @@ from urllib.parse import quote
 
 from providerModules.a4kNewsgroups import common
 
-from resources.lib.common import source_utils
+from resources.lib.common.source_utils import (
+    check_episode_number_match,
+    check_title_match,
+    clean_title,
+    get_info,
+    get_quality,
+    de_string_size,
+)
 from resources.lib.modules.exceptions import PreemptiveCancellation
 
 _exclusions = ['soundtrack', 'gesproken', 'sample', 'trailer', 'extras only', 'ost']
@@ -92,7 +99,7 @@ class sources:
 
         return down_url, dl_farm, dl_port, files
 
-    def _process_item(self, item, down_url, dl_farm, dl_port):
+    def _process_item(self, item, down_url, dl_farm, dl_port, simple_info):
         post_hash, size, post_title, ext = (
             item["0"],
             item["4"],
@@ -100,11 +107,23 @@ class sources:
             item["11"],
         )
 
+        title = simple_info.get("title", simple_info.get("show_title", ""))
+        cleaned = clean_title(post_title)
+
         if item.get("virus"):
             return
         if item.get("type", "").upper() != "VIDEO":
             return
-        if self._check_exclusions(post_title):
+        if not check_title_match(clean_title(title).split(" "), cleaned, simple_info):
+            return
+        if not "show_title" in simple_info and check_episode_number_match(cleaned):
+            return
+        if self._check_for_aliases(
+            cleaned,
+            simple_info,
+        ):
+            return
+        if self._check_exclusions(cleaned):
             return
         if not self._check_languages(item.get("alangs", []), item.get("slangs", [])):
             return
@@ -117,9 +136,9 @@ class sources:
         source = {
             "scraper": "easynews",
             "release_title": post_title,
-            "info": source_utils.get_info(post_title),
-            "size": source_utils.de_string_size(size),
-            "quality": source_utils.get_quality(post_title),
+            "info": get_info(post_title),
+            "size": de_string_size(size),
+            "quality": get_quality(post_title),
             "url": file_dl,
         }
         return source
@@ -131,10 +150,6 @@ class sources:
             return sources
 
         show_title = simple_info["show_title"]
-        show_aliases = simple_info["show_aliases"]
-        year = simple_info["year"]
-        country = simple_info["country"]
-        episode_title = simple_info["episode_title"]
         season_x = simple_info["season_number"]
         season_xx = season_x.zfill(2)
         episode_x = simple_info["episode_number"]
@@ -158,17 +173,22 @@ class sources:
                 return self._return_results("episode", sources, preemptive=True)
 
             for item in files:
-                source = self._process_item(item, down_url, dl_farm, dl_port)
+                source = self._process_item(
+                    item, down_url, dl_farm, dl_port, simple_info
+                )
                 if source is not None:
                     sources.append(source)
 
         return self._return_results("episode", sources)
 
-    def movie(self, title, year, imdb_id):
+    def movie(self, simple_info, all_info):
         self.start_time = time.time()
         sources = []
         if not self.auth:
             return sources
+
+        title = simple_info["title"]
+        year = simple_info["year"]
 
         query = "\"{}\" {}".format(title, year)
         try:
@@ -177,20 +197,31 @@ class sources:
             return self._return_results("episode", sources, preemptive=True)
 
         for item in files:
-            source = self._process_item(item, down_url, dl_farm, dl_port)
+            source = self._process_item(item, down_url, dl_farm, dl_port, simple_info)
             if source is not None:
                 sources.append(source)
 
         return self._return_results("movie", sources)
 
     @staticmethod
-    def _check_exclusions(release_title):
-        check_title = release_title.lower()
-        return any([i in check_title for i in _exclusions])
+    def _check_for_aliases(clean_title, simple_info):
+        aliases = simple_info.get("aliases", simple_info.get("show_aliases", ""))
+
+        for alias in aliases:
+            if check_title_match(
+                clean_title(alias).split(" "), clean_title, simple_info
+            ):
+                return True
+
+    @staticmethod
+    def _check_exclusions(clean_title):
+        return any([i in clean_title for i in _exclusions])
 
     @staticmethod
     def _check_languages(alangs, slangs):
-        return alangs is None or "eng" in alangs
+        english_audio = alangs is None or "eng" in alangs
+        english_subtitles = slangs is None or "eng" in slangs
+        return english_audio or english_subtitles
 
     @staticmethod
     def get_listitem(return_data):
