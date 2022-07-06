@@ -204,12 +204,12 @@ class sources:
         return self._return_results("movie", sources)
 
     @staticmethod
-    def _check_for_aliases(clean_title, simple_info):
+    def _check_for_aliases(cleaned_title, simple_info):
         aliases = simple_info.get("aliases", simple_info.get("show_aliases", ""))
 
         for alias in aliases:
             if check_title_match(
-                clean_title(alias).split(" "), clean_title, simple_info
+                clean_title(alias).split(" "), cleaned_title, simple_info
             ):
                 return True
 
