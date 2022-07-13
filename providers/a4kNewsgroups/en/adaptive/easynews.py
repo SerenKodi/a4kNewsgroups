@@ -48,7 +48,7 @@ class sources:
             'fty[]': 'VIDEO',
             'u': '1',
             'pby': 350,
-            'safeO': 1,
+            'safeO': 0,
         }
         self.search_params.update(self.sort_params)
 
