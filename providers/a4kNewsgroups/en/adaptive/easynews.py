@@ -23,7 +23,7 @@ from resources.lib.common.source_utils import (
 )
 from resources.lib.modules.exceptions import PreemptiveCancellation
 
-_exclusions = ['soundtrack', 'gesproken', 'sample', 'trailer', 'extras only', 'ost']
+_exclusions = ['soundtrack', 'gesproken', 'sample', 'trailer', 'extras only', ' ost']
 
 
 class sources:
