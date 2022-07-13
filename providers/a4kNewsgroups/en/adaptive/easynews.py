@@ -194,7 +194,7 @@ class sources:
         try:
             down_url, dl_farm, dl_port, files = self._make_query(query)
         except PreemptiveCancellation:
-            return self._return_results("episode", sources, preemptive=True)
+            return self._return_results("movie", sources, preemptive=True)
 
         for item in files:
             source = self._process_item(item, down_url, dl_farm, dl_port, simple_info)
