@@ -107,21 +107,19 @@ class sources:
             item["11"],
         )
 
-        title = simple_info.get("title", simple_info.get("show_title", ""))
+        titles = [
+            simple_info.get("title", simple_info.get("show_title", "")),
+            *simple_info.get("aliases", simple_info.get("show_aliases", [])),
+        ]
         cleaned = clean_title(post_title)
 
         if item.get("virus"):
             return
         if item.get("type", "").upper() != "VIDEO":
             return
-        if not check_title_match(clean_title(title).split(" "), cleaned, simple_info):
+        if not any([cleaned == clean_title(title) for title in titles]):
             return
-        if not "show_title" in simple_info and check_episode_number_match(cleaned):
-            return
-        if self._check_for_aliases(
-            cleaned,
-            simple_info,
-        ):
+        if not ("show_title" in simple_info and check_episode_number_match(cleaned)):
             return
         if self._check_exclusions(cleaned):
             return
@@ -202,16 +200,6 @@ class sources:
                 sources.append(source)
 
         return self._return_results("movie", sources)
-
-    @staticmethod
-    def _check_for_aliases(cleaned_title, simple_info):
-        aliases = simple_info.get("aliases", simple_info.get("show_aliases", ""))
-
-        for alias in aliases:
-            if check_title_match(
-                clean_title(alias).split(" "), cleaned_title, simple_info
-            ):
-                return True
 
     @staticmethod
     def _check_exclusions(clean_title):
