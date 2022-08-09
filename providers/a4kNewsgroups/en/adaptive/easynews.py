@@ -23,47 +23,47 @@ from resources.lib.common.source_utils import (
 )
 from resources.lib.modules.exceptions import PreemptiveCancellation
 
-_exclusions = ['soundtrack', 'gesproken', 'sample', 'trailer', 'extras only', ' ost']
+_exclusions = ["soundtrack", "gesproken", "sample", "trailer", "extras only", " ost"]
 
 
 class sources:
     def __init__(self):
-        self.language = ['en']
+        self.language = ["en"]
         self.base_link = "https://members.easynews.com"
         self.search_link = "/2.0/search/solr-search/advanced"
         self.query_link = self.base_link + self.search_link
         self.auth = self._get_auth()
         self.start_time = 0
         self.sort_params = {
-            's1': 'relevance',
-            's1d': '-',
-            's2': 'dsize',
-            's2d': '-',
-            's3': 'dtime',
-            's3d': '-',
+            "s1": "relevance",
+            "s1d": "-",
+            "s2": "dsize",
+            "s2d": "-",
+            "s3": "dtime",
+            "s3d": "-",
         }
         self.search_params = {
-            'st': 'adv',
-            'fex': 'm4v,3gp,mov,divx,xvid,wmv,avi,mpg,mpeg,mp4,mkv,avc,flv,webm',
-            'fty[]': 'VIDEO',
-            'u': '1',
-            'pby': 350,
-            'safeO': 0,
+            "st": "adv",
+            "fex": "m4v,3gp,mov,divx,xvid,wmv,avi,mpg,mpeg,mp4,mkv,avc,flv,webm",
+            "fty[]": "VIDEO",
+            "u": "1",
+            "pby": 350,
+            "safeO": 0,
         }
         self.search_params.update(self.sort_params)
 
     def _get_auth(self):
         auth = None
         try:
-            username = common.get_setting('easynews.username')
-            password = common.get_setting('easynews.password')
+            username = common.get_setting("easynews.username")
+            password = common.get_setting("easynews.password")
             if username == "" or password == "":
                 return auth
-            user_info = '{}:{}'.format(username, password)
-            user_info = user_info.encode('utf-8')
-            auth = "Basic {}".format(b64encode(user_info).decode('utf-8'))
+            user_info = "{}:{}".format(username, password)
+            user_info = user_info.encode("utf-8")
+            auth = "Basic {}".format(b64encode(user_info).decode("utf-8"))
         except:
-            common.log('Could not authorize.')
+            common.log("Could not authorize.")
         return auth
 
     def _return_results(self, source_type, sources, preemptive=False):
@@ -159,10 +159,10 @@ class sources:
 
         queries = []
         if is_anime and absolute_number:
-            queries.append("\"{}\" {}".format(show_title, numbers[2]))
+            queries.append('"{}" {}'.format(show_title, numbers[2]))
         else:
             for n in numbers[:2]:
-                queries.append("\"{}\" S{}E{}".format(show_title, n[0], n[1]))
+                queries.append('"{}" S{}E{}'.format(show_title, n[0], n[1]))
 
         for query in queries:
             try:
@@ -188,7 +188,7 @@ class sources:
         title = simple_info["title"]
         year = simple_info["year"]
 
-        query = "\"{}\" {}".format(title, year)
+        query = '"{}" {}'.format(title, year)
         try:
             down_url, dl_farm, dl_port, files = self._make_query(query)
         except PreemptiveCancellation:
@@ -215,7 +215,7 @@ class sources:
     def get_listitem(return_data):
         list_item = xbmcgui.ListItem(path=return_data["url"], offscreen=True)
         list_item.setContentLookup(False)
-        list_item.setProperty('isFolder', 'false')
-        list_item.setProperty('isPlayable', 'true')
+        list_item.setProperty("isFolder", "false")
+        list_item.setProperty("isPlayable", "true")
 
         return list_item
