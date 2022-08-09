@@ -10,6 +10,7 @@ from base64 import b64encode
 import re
 import requests
 import time
+import unicodedata
 from urllib.parse import quote
 
 from providerModules.a4kNewsgroups import common
@@ -97,6 +98,14 @@ class sources:
         return sources
 
     def _make_query(self, query):
+        query = "".join(
+            [
+                c
+                for c in unicodedata.normalize("NFKD", query)
+                if unicodedata.category(c) != "Mn"
+            ]
+        )
+
         self.search_params["gps"] = query
         results = requests.get(
             self.query_link,
