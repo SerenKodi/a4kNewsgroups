@@ -7,6 +7,7 @@ install_aliases()
 import xbmcgui
 
 from base64 import b64encode
+import re
 import requests
 import time
 from urllib.parse import quote
@@ -15,7 +16,6 @@ from providerModules.a4kNewsgroups import common
 
 from resources.lib.common.source_utils import (
     check_episode_number_match,
-    check_title_match,
     clean_title,
     get_info,
     get_quality,
@@ -24,6 +24,19 @@ from resources.lib.common.source_utils import (
 from resources.lib.modules.exceptions import PreemptiveCancellation
 
 _exclusions = ["soundtrack", "gesproken", "sample", "trailer", "extras only", " ost"]
+_resolutions = [
+    "2160p",
+    "216op",
+    "4k",
+    "1080p",
+    "1o8op",
+    "108op",
+    "1o80p",
+    "720p",
+    "72op",
+    "480p",
+    "48op",
+]
 
 
 class sources:
@@ -107,19 +120,13 @@ class sources:
             item["11"],
         )
 
-        titles = [
-            simple_info.get("title", simple_info.get("show_title", "")),
-            *simple_info.get("aliases", simple_info.get("show_aliases", [])),
-        ]
         cleaned = clean_title(post_title)
 
         if item.get("virus"):
             return
         if item.get("type", "").upper() != "VIDEO":
             return
-        if not any([cleaned == clean_title(title) for title in titles]):
-            return
-        if not ("show_title" in simple_info and check_episode_number_match(cleaned)):
+        if not self.title_check(post_title, simple_info):
             return
         if self._check_exclusions(cleaned):
             return
@@ -201,6 +208,31 @@ class sources:
                 sources.append(source)
 
         return self._return_results("movie", sources)
+
+    @staticmethod
+    def title_check(post_title, simple_info):
+        meta_title = simple_info.get("title", simple_info.get("show_title", ""))
+        aliases = simple_info.get("aliases", simple_info.get("show_aliases", []))
+        post_cleaned = clean_title(post_title)
+        meta_cleaned = clean_title(meta_title)
+        titles_cleaned = [meta_cleaned, *[clean_title(alias) for alias in aliases]]
+
+        split = re.split(rf"{simple_info.get('year')}", post_cleaned, 1, re.I)[0]
+        split = re.split(
+            rf"{'|'.join(_resolutions)}",
+            split,
+            1,
+            re.I,
+        )[0]
+        split = split.rstrip()
+
+        if "show_title" in simple_info and check_episode_number_match(post_cleaned):
+            return True
+
+        if any([split == title for title in titles_cleaned]):
+            return True
+
+        return False
 
     @staticmethod
     def _check_exclusions(clean_title):
