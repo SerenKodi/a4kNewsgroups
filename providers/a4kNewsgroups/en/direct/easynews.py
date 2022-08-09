@@ -138,6 +138,7 @@ class sources:
             "size": de_string_size(size),
             "quality": get_quality(post_title),
             "url": file_dl,
+            "debrid_provider": "Usenet",
         }
         return source
 
