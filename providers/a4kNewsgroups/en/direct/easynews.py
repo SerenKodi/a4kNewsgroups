@@ -184,15 +184,16 @@ class sources:
         for query in queries:
             try:
                 down_url, dl_farm, dl_port, files = self._make_query(query)
+
+                for item in files:
+                    source = self._process_item(
+                        item, down_url, dl_farm, dl_port, simple_info
+                    )
+
+                    if source is not None:
+                        sources.append(source)
             except PreemptiveCancellation:
                 return self._return_results("episode", sources, preemptive=True)
-
-            for item in files:
-                source = self._process_item(
-                    item, down_url, dl_farm, dl_port, simple_info
-                )
-                if source is not None:
-                    sources.append(source)
 
         return self._return_results("episode", sources)
 
@@ -208,13 +209,16 @@ class sources:
         query = '"{}" {}'.format(title, year)
         try:
             down_url, dl_farm, dl_port, files = self._make_query(query)
+
+            for item in files:
+                source = self._process_item(
+                    item, down_url, dl_farm, dl_port, simple_info
+                )
+
+                if source is not None:
+                    sources.append(source)
         except PreemptiveCancellation:
             return self._return_results("movie", sources, preemptive=True)
-
-        for item in files:
-            source = self._process_item(item, down_url, dl_farm, dl_port, simple_info)
-            if source is not None:
-                sources.append(source)
 
         return self._return_results("movie", sources)
 
