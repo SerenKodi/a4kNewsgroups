@@ -241,17 +241,21 @@ class sources:
         split = split.rstrip()
 
         if "show_title" in simple_info:
-            data = re.search(episode_regex, split).groups()
-
+            data = re.search(episode_regex, split)
+            if data is None:
+                return False
+            else:
+                data = data.groups()
+            
             show_title = data[0].rstrip() if data[0] else None
             episode_title = data[8].lstrip() if data[8] else None
 
             if not any([show_title == title for title in titles_cleaned]):
                 return False
-            if episode_title is not None and not episode_title == clean_title(
-                simple_info["episode_title"]
-            ):
-                return False
+            # if episode_title is not None and not episode_title == clean_title(
+                # simple_info["episode_title"]
+            # ):
+                # return False
 
             numbers = []
             for pos in [(2, 3), (4, 5), (6, 7)]:
