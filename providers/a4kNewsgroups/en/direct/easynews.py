@@ -10,6 +10,7 @@ from base64 import b64encode
 import re
 import requests
 import time
+import unicodedata
 from urllib.parse import quote
 
 from providerModules.a4kNewsgroups import common
@@ -97,6 +98,14 @@ class sources:
         return sources
 
     def _make_query(self, query):
+        query = "".join(
+            [
+                c
+                for c in unicodedata.normalize("NFKD", query)
+                if unicodedata.category(c) != "Mn"
+            ]
+        )
+
         self.search_params["gps"] = query
         results = requests.get(
             self.query_link,
@@ -175,15 +184,16 @@ class sources:
         for query in queries:
             try:
                 down_url, dl_farm, dl_port, files = self._make_query(query)
+
+                for item in files:
+                    source = self._process_item(
+                        item, down_url, dl_farm, dl_port, simple_info
+                    )
+
+                    if source is not None:
+                        sources.append(source)
             except PreemptiveCancellation:
                 return self._return_results("episode", sources, preemptive=True)
-
-            for item in files:
-                source = self._process_item(
-                    item, down_url, dl_farm, dl_port, simple_info
-                )
-                if source is not None:
-                    sources.append(source)
 
         return self._return_results("episode", sources)
 
@@ -199,13 +209,16 @@ class sources:
         query = '"{}" {}'.format(title, year)
         try:
             down_url, dl_farm, dl_port, files = self._make_query(query)
+
+            for item in files:
+                source = self._process_item(
+                    item, down_url, dl_farm, dl_port, simple_info
+                )
+
+                if source is not None:
+                    sources.append(source)
         except PreemptiveCancellation:
             return self._return_results("movie", sources, preemptive=True)
-
-        for item in files:
-            source = self._process_item(item, down_url, dl_farm, dl_port, simple_info)
-            if source is not None:
-                sources.append(source)
 
         return self._return_results("movie", sources)
 
@@ -216,6 +229,7 @@ class sources:
         post_cleaned = clean_title(post_title)
         meta_cleaned = clean_title(meta_title)
         titles_cleaned = [meta_cleaned, *[clean_title(alias) for alias in aliases]]
+        episode_regex = r"(.*)((?:s(\d+) ?e(\d+))|(?:season ?(\d+) ?(?:episode|ep) ?(\d+))|(?: (\d+) ?x ?(\d+)))(.*)"
 
         split = re.split(rf"{simple_info.get('year')}", post_cleaned, 1, re.I)[0]
         split = re.split(
@@ -226,10 +240,36 @@ class sources:
         )[0]
         split = split.rstrip()
 
-        if "show_title" in simple_info and check_episode_number_match(post_cleaned):
-            return True
+        if "show_title" in simple_info:
+            data = re.search(episode_regex, split).groups()
 
-        if any([split == title for title in titles_cleaned]):
+            show_title = data[0].rstrip() if data[0] else None
+            episode_title = data[8].lstrip() if data[8] else None
+
+            if not any([show_title == title for title in titles_cleaned]):
+                return False
+            if episode_title is not None and not episode_title == clean_title(
+                simple_info["episode_title"]
+            ):
+                return False
+
+            numbers = []
+            for pos in [(2, 3), (4, 5), (6, 7)]:
+                if not any([None in (data[pos[0]], data[pos[1]])]):
+                    numbers.append((int(data[pos[0]]), int(data[pos[1]])))
+            if numbers and not any(
+                [
+                    i
+                    == (
+                        int(simple_info["season_number"]),
+                        int(simple_info["episode_number"]),
+                    )
+                    for i in numbers
+                ]
+            ):
+                return False
+            return True
+        elif any([split == title for title in titles_cleaned]):
             return True
 
         return False
