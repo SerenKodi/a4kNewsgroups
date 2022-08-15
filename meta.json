@@ -1,6 +1,6 @@
 {
   "author": "a4k-openproject",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "name": "a4kNewsgroups",
   "update_directory": "https://github.com/a4k-openproject/a4kNewsgroups/archive/",
   "remote_meta": "https://raw.githubusercontent.com/a4k-openproject/a4kNewsgroups/master/meta.json",
