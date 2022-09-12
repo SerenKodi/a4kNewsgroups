@@ -198,8 +198,6 @@ class sources:
             except PreemptiveCancellation:
                 return self._return_results("episode", sources, preemptive=True)
 
-        return self._return_results("episode", sources)
-
     def movie(self, simple_info, all_info):
         self.start_time = time.time()
         sources = []
