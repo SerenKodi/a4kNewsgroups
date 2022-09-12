@@ -21,6 +21,8 @@ from resources.lib.common.source_utils import (
     get_info,
     get_quality,
     de_string_size,
+    remove_from_title,
+    remove_country,
 )
 from resources.lib.modules.exceptions import PreemptiveCancellation
 
@@ -164,7 +166,7 @@ class sources:
         if not self.auth:
             return sources
 
-        show_title = simple_info["show_title"]
+        show_title = clean_title(simple_info["show_title"])
         season_x = simple_info["season_number"]
         season_xx = season_x.zfill(2)
         episode_x = simple_info["episode_number"]
@@ -192,6 +194,7 @@ class sources:
 
                     if source is not None:
                         sources.append(source)
+                return self._return_results("episode", sources)
             except PreemptiveCancellation:
                 return self._return_results("episode", sources, preemptive=True)
 
@@ -203,7 +206,7 @@ class sources:
         if not self.auth:
             return sources
 
-        title = simple_info["title"]
+        title = clean_title(simple_info["title"])
         year = simple_info["year"]
 
         query = '"{}" {}'.format(title, year)
@@ -217,16 +220,31 @@ class sources:
 
                 if source is not None:
                     sources.append(source)
+
+            if not files: 
+                query = "{}".format(title)
+                down_url, dl_farm, dl_port, files = self._make_query(query)
+                
+                for item in files:
+                    source = self._process_item(item, down_url, dl_farm, dl_port, simple_info)
+                    
+                    if source is not None:
+                        sources.append(source)
+
+            return self._return_results("movie", sources)
         except PreemptiveCancellation:
             return self._return_results("movie", sources, preemptive=True)
-
-        return self._return_results("movie", sources)
 
     @staticmethod
     def title_check(post_title, simple_info):
         meta_title = simple_info.get("title", simple_info.get("show_title", ""))
         aliases = simple_info.get("aliases", simple_info.get("show_aliases", []))
         post_cleaned = clean_title(post_title)
+        if "show_title" in simple_info:
+            country = simple_info.get("country", "")
+            year = simple_info.get("year", "")
+            post_cleaned = remove_country(post_cleaned, country)
+            post_cleaned = remove_from_title(post_cleaned, year)       
         meta_cleaned = clean_title(meta_title)
         titles_cleaned = [meta_cleaned, *[clean_title(alias) for alias in aliases]]
         episode_regex = r"(.*)((?:s(\d+) ?e(\d+))|(?:season ?(\d+) ?(?:episode|ep) ?(\d+))|(?: (\d+) ?x ?(\d+)))(.*)"
