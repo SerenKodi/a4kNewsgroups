@@ -167,21 +167,16 @@ class sources:
             return sources
 
         show_title = clean_title(simple_info["show_title"])
-        season_x = simple_info["season_number"]
-        season_xx = season_x.zfill(2)
-        episode_x = simple_info["episode_number"]
-        episode_xx = episode_x.zfill(2)
+        season_xx = simple_info["season_number"].zfill(2)
+        episode_xx = simple_info["episode_number"].zfill(2)
         absolute_number = simple_info["absolute_number"]
         is_anime = simple_info["isanime"]
 
-        numbers = [(season_x, episode_x), (season_xx, episode_xx), absolute_number]
-
-        queries = []
+        queries = [
+            '"{}" S{}E{}'.format(show_title, season_xx, episode_xx),
+        ]
         if is_anime and absolute_number:
-            queries.append('"{}" {}'.format(show_title, numbers[2]))
-        else:
-            for n in numbers[:2]:
-                queries.append('"{}" S{}E{}'.format(show_title, n[0], n[1]))
+            queries.append('"{}" {}'.format(show_title, absolute_number))
 
         for query in queries:
             try:
