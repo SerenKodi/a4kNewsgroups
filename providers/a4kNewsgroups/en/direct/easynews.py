@@ -21,6 +21,8 @@ from resources.lib.common.source_utils import (
     get_info,
     get_quality,
     de_string_size,
+    remove_from_title,
+    remove_country,
 )
 from resources.lib.modules.exceptions import PreemptiveCancellation
 
@@ -164,22 +166,17 @@ class sources:
         if not self.auth:
             return sources
 
-        show_title = simple_info["show_title"]
-        season_x = simple_info["season_number"]
-        season_xx = season_x.zfill(2)
-        episode_x = simple_info["episode_number"]
-        episode_xx = episode_x.zfill(2)
+        show_title = clean_title(simple_info["show_title"])
+        season_xx = simple_info["season_number"].zfill(2)
+        episode_xx = simple_info["episode_number"].zfill(2)
         absolute_number = simple_info["absolute_number"]
         is_anime = simple_info["isanime"]
 
-        numbers = [(season_x, episode_x), (season_xx, episode_xx), absolute_number]
-
-        queries = []
+        queries = [
+            '"{}" S{}E{}'.format(show_title, season_xx, episode_xx),
+        ]
         if is_anime and absolute_number:
-            queries.append('"{}" {}'.format(show_title, numbers[2]))
-        else:
-            for n in numbers[:2]:
-                queries.append('"{}" S{}E{}'.format(show_title, n[0], n[1]))
+            queries.append('"{}" {}'.format(show_title, absolute_number))
 
         for query in queries:
             try:
@@ -192,10 +189,9 @@ class sources:
 
                     if source is not None:
                         sources.append(source)
+                return self._return_results("episode", sources)
             except PreemptiveCancellation:
                 return self._return_results("episode", sources, preemptive=True)
-
-        return self._return_results("episode", sources)
 
     def movie(self, simple_info, all_info):
         self.start_time = time.time()
@@ -203,12 +199,15 @@ class sources:
         if not self.auth:
             return sources
 
-        title = simple_info["title"]
+        title = clean_title(simple_info["title"])
         year = simple_info["year"]
 
         query = '"{}" {}'.format(title, year)
         try:
             down_url, dl_farm, dl_port, files = self._make_query(query)
+            if not files:
+                query = "{}".format(title)
+                down_url, dl_farm, dl_port, files = self._make_query(query)
 
             for item in files:
                 source = self._process_item(
@@ -217,16 +216,21 @@ class sources:
 
                 if source is not None:
                     sources.append(source)
+
+            return self._return_results("movie", sources)
         except PreemptiveCancellation:
             return self._return_results("movie", sources, preemptive=True)
-
-        return self._return_results("movie", sources)
 
     @staticmethod
     def title_check(post_title, simple_info):
         meta_title = simple_info.get("title", simple_info.get("show_title", ""))
         aliases = simple_info.get("aliases", simple_info.get("show_aliases", []))
         post_cleaned = clean_title(post_title)
+        if "show_title" in simple_info:
+            country = simple_info.get("country", "")
+            year = simple_info.get("year", "")
+            post_cleaned = remove_country(post_cleaned, country)
+            post_cleaned = remove_from_title(post_cleaned, year)
         meta_cleaned = clean_title(meta_title)
         titles_cleaned = [meta_cleaned, *[clean_title(alias) for alias in aliases]]
         episode_regex = r"(.*)((?:s(\d+) ?e(\d+))|(?:season ?(\d+) ?(?:episode|ep) ?(\d+))|(?: (\d+) ?x ?(\d+)))(.*)"
@@ -246,16 +250,16 @@ class sources:
                 return False
             else:
                 data = data.groups()
-            
+
             show_title = data[0].rstrip() if data[0] else None
             episode_title = data[8].lstrip() if data[8] else None
 
             if not any([show_title == title for title in titles_cleaned]):
                 return False
             # if episode_title is not None and not episode_title == clean_title(
-                # simple_info["episode_title"]
+            # simple_info["episode_title"]
             # ):
-                # return False
+            # return False
 
             numbers = []
             for pos in [(2, 3), (4, 5), (6, 7)]:
