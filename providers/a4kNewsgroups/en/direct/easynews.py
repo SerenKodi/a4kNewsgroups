@@ -79,7 +79,9 @@ class sources:
             user_info = user_info.encode("utf-8")
             auth = "Basic {}".format(b64encode(user_info).decode("utf-8"))
         except Exception as e:
-            common.log("Could not authorize: {}".format(e))
+            common.log(
+                "a4kNewsgroups.easynews: could not authorize - {}".format(e), "error"
+            )
         return auth
 
     def _return_results(self, source_type, sources, preemptive=False):
@@ -88,6 +90,12 @@ class sources:
                 "a4kNewsgroups.{}.easynews: cancellation requested".format(source_type),
                 "info",
             )
+        elif preemptive is None:
+            common.log(
+                "a4kNewsgroups.{}.easynews: not authorized".format(source_type),
+                "info",
+            )
+
         common.log(
             "a4kNewsgroups.{}.easynews: {}".format(source_type, len(sources)), "info"
         )
@@ -164,7 +172,7 @@ class sources:
         self.start_time = time.time()
         sources = []
         if not self.auth:
-            return sources
+            return self._return_results("episode", sources, preemptive=None)
 
         show_title = clean_title(simple_info["show_title"])
         season_xx = simple_info["season_number"].zfill(2)
@@ -197,7 +205,7 @@ class sources:
         self.start_time = time.time()
         sources = []
         if not self.auth:
-            return sources
+            return self._return_results("movie", sources, preemptive=None)
 
         title = clean_title(simple_info["title"])
         year = simple_info["year"]
