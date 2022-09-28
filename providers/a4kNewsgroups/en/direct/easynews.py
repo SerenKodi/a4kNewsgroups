@@ -78,8 +78,8 @@ class sources:
             user_info = "{}:{}".format(username, password)
             user_info = user_info.encode("utf-8")
             auth = "Basic {}".format(b64encode(user_info).decode("utf-8"))
-        except:
-            common.log("Could not authorize.")
+        except Exception as e:
+            common.log("Could not authorize: {}".format(e))
         return auth
 
     def _return_results(self, source_type, sources, preemptive=False):

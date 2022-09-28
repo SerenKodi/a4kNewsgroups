@@ -10,14 +10,14 @@
   "settings": [
     {
       "id": "easynews.username",
-      "type": "string",
+      "type": "str",
       "default": "",
       "visible": true,
       "label": "EasyNews Username"
     },
     {
       "id": "easynews.password",
-      "type": "string",
+      "type": "str",
       "sensitive": true,
       "default": "",
       "visible": true,
