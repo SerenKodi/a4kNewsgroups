@@ -1,21 +1,21 @@
-import xbmc
-
 import os
+
+import xbmc
 
 from resources.lib.common import provider_tools
 from resources.lib.modules.globals import g
 
-PACKAGE_NAME = 'a4kNewsgroups'
+PACKAGE_NAME = "a4kNewsgroups"
 
 
-def log(msg, level='info'):
-    g.log('{}'.format(msg), level)
+def log(msg, level="info"):
+    g.log("{}".format(msg), level)
 
 
 def debug(msg, format=None):
     if format:
         msg.format(format)
-    g.log(msg, 'debug')
+    g.log(msg, "debug")
 
 
 def get_all_relative_py_files(file):
@@ -23,7 +23,7 @@ def get_all_relative_py_files(file):
     return [
         filename[:-3]
         for filename in files
-        if not filename.startswith('__') and filename.endswith('.py')
+        if not filename.startswith("__") and filename.endswith(".py")
     ]
 
 
@@ -36,5 +36,5 @@ def set_setting(id, value):
 
 
 def purge_credentials():
-    set_setting('easynews.username', '')
-    set_setting('easynews.password', '')
+    set_setting("easynews.username", "")
+    set_setting("easynews.password", "")

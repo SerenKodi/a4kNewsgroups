@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, unicode_literals
-from future.standard_library import install_aliases
-
-install_aliases()
-
-import xbmcgui
-
 from base64 import b64encode
 import re
 import requests
@@ -13,7 +6,7 @@ import time
 import unicodedata
 from urllib.parse import quote
 
-from providerModules.a4kNewsgroups import common
+import xbmcgui
 
 from resources.lib.common.source_utils import (
     check_episode_number_match,
@@ -25,6 +18,8 @@ from resources.lib.common.source_utils import (
     remove_country,
 )
 from resources.lib.modules.exceptions import PreemptiveCancellation
+
+from providerModules.a4kNewsgroups import common
 
 _exclusions = ["soundtrack", "gesproken", "sample", "trailer", "extras only", " ost"]
 _resolutions = [
