@@ -74,7 +74,7 @@ class sources:
             auth = f"Basic {b64encode(user_info).decode('utf-8')}"
         except Exception as e:
             common.log(f"a4kNewsgroups.easynews: could not authorize - {e}", "error")
-        return auth
+        return {"Authorization": auth}
 
     def _return_results(self, source_type, sources, preemptive=False):
         if preemptive:
@@ -102,7 +102,7 @@ class sources:
         results = requests.get(
             self.query_link,
             params=self.search_params,
-            headers={"Authorization": self.auth},
+            headers=self.auth,
             timeout=20,
         ).json()
 
@@ -135,7 +135,7 @@ class sources:
             return
 
         stream_url = down_url + quote(f"/{dl_farm}/{dl_port}/{post_hash}{ext}/{post_title}{ext}")
-        file_dl = f"{stream_url}|Authorization={quote(self.auth)}"
+        file_dl = f"{stream_url}|Authorization={quote(self.auth['Authorization'])}"
 
         source = {
             "scraper": "easynews",
@@ -145,7 +145,7 @@ class sources:
             "quality": get_quality(post_title),
             "url": file_dl,
             "debrid_provider": "Usenet",
-            "headers": {"Authorization": f"Basic {self.auth}"},
+            "headers": self.auth,
         }
         return source
 
