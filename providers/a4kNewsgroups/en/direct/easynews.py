@@ -146,6 +146,7 @@ class sources:
             "url": file_dl,
             "debrid_provider": "Usenet",
             "headers": self.auth,
+            "filetype": ext,
         }
         return source
 
