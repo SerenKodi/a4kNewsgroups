@@ -160,6 +160,7 @@ class sources:
             "quality": get_quality(post_title),
             "url": file_dl,
             "debrid_provider": "Usenet",
+            "headers": {"Authorization": f"Basic {self.auth}"},
         }
         return source
 
