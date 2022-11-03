@@ -9,7 +9,6 @@ from urllib.parse import quote
 import xbmcgui
 
 from resources.lib.common.source_utils import (
-    check_episode_number_match,
     clean_title,
     get_info,
     get_quality,
@@ -42,7 +41,7 @@ class sources:
         self.language = ["en"]
         self.base_link = "https://members.easynews.com"
         self.search_link = "/2.0/search/solr-search/advanced"
-        self.query_link = self.base_link + self.search_link
+        self.query_link = f"{self.base_link}{self.search_link}"
         self.auth = self._get_auth()
         self.start_time = 0
         self.sort_params = {
@@ -70,46 +69,34 @@ class sources:
             password = common.get_setting("easynews.password")
             if username == "" or password == "":
                 return auth
-            user_info = "{}:{}".format(username, password)
+            user_info = f"{username}:{password}"
             user_info = user_info.encode("utf-8")
-            auth = "Basic {}".format(b64encode(user_info).decode("utf-8"))
+            auth = f"Basic {b64encode(user_info).decode('utf-8')}"
         except Exception as e:
-            common.log(
-                "a4kNewsgroups.easynews: could not authorize - {}".format(e), "error"
-            )
+            common.log(f"a4kNewsgroups.easynews: could not authorize - {e}", "error")
         return auth
 
     def _return_results(self, source_type, sources, preemptive=False):
         if preemptive:
             common.log(
-                "a4kNewsgroups.{}.easynews: cancellation requested".format(source_type),
+                f"a4kNewsgroupssource_typeeasynews: cancellation requested",
                 "info",
             )
         elif preemptive is None:
             common.log(
-                "a4kNewsgroups.{}.easynews: not authorized".format(source_type),
+                f"a4kNewsgroups.{source_type}.easynews: not authorized",
                 "info",
             )
 
+        common.log(f"a4kNewsgroups.{source_type}.easynews: {len(sources)}", "info")
         common.log(
-            "a4kNewsgroups.{}.easynews: {}".format(source_type, len(sources)), "info"
-        )
-        common.log(
-            "a4kNewsgroups.{}.easynews: took {} ms".format(
-                source_type, int((time.time() - self.start_time) * 1000)
-            ),
+            f"a4kNewsgroups.{source_type}.easynews: took {int((time.time() - self.start_time) * 1000)} ms",
             "info",
         )
         return sources
 
     def _make_query(self, query):
-        query = "".join(
-            [
-                c
-                for c in unicodedata.normalize("NFKD", query)
-                if unicodedata.category(c) != "Mn"
-            ]
-        )
+        query = "".join([c for c in unicodedata.normalize("NFKD", query) if unicodedata.category(c) != "Mn"])
 
         self.search_params["gps"] = query
         results = requests.get(
@@ -147,10 +134,8 @@ class sources:
         if not self._check_languages(item.get("alangs", []), item.get("slangs", [])):
             return
 
-        stream_url = down_url + quote(
-            "/{}/{}/{}{}/{}{}".format(dl_farm, dl_port, post_hash, ext, post_title, ext)
-        )
-        file_dl = "{}|Authorization={}".format(stream_url, quote(self.auth))
+        stream_url = down_url + quote(f"/{dl_farm}/{dl_port}/{post_hash}{ext}/{post_title}{ext}")
+        file_dl = f"{stream_url}|Authorization={quote(self.auth)}"
 
         source = {
             "scraper": "easynews",
@@ -177,19 +162,17 @@ class sources:
         is_anime = simple_info["isanime"]
 
         queries = [
-            '"{}" S{}E{}'.format(show_title, season_xx, episode_xx),
+            f'"{show_title}" S{season_xx}E{episode_xx}',
         ]
         if is_anime and absolute_number:
-            queries.append('"{}" {}'.format(show_title, absolute_number))
+            queries.append(f'"{show_title}" {absolute_number}')
 
         for query in queries:
             try:
                 down_url, dl_farm, dl_port, files = self._make_query(query)
 
                 for item in files:
-                    source = self._process_item(
-                        item, down_url, dl_farm, dl_port, simple_info
-                    )
+                    source = self._process_item(item, down_url, dl_farm, dl_port, simple_info)
 
                     if source is not None:
                         sources.append(source)
@@ -206,17 +189,15 @@ class sources:
         title = clean_title(simple_info["title"])
         year = simple_info["year"]
 
-        query = '"{}" {}'.format(title, year)
+        query = f'"{title}" {year}'
         try:
             down_url, dl_farm, dl_port, files = self._make_query(query)
             if not files:
-                query = "{}".format(title)
+                query = title
                 down_url, dl_farm, dl_port, files = self._make_query(query)
 
             for item in files:
-                source = self._process_item(
-                    item, down_url, dl_farm, dl_port, simple_info
-                )
+                source = self._process_item(item, down_url, dl_farm, dl_port, simple_info)
 
                 if source is not None:
                     sources.append(source)
