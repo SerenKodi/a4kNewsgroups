@@ -150,7 +150,7 @@ class sources:
         }
         return source
 
-    def episode(self, simple_info, all_info):
+    def episode(self, simple_info, info):
         self.start_time = time.time()
         sources = []
         if not self.auth:
@@ -181,7 +181,7 @@ class sources:
             except PreemptiveCancellation:
                 return self._return_results("episode", sources, preemptive=True)
 
-    def movie(self, title, year, imdb, simple_info, all_info):
+    def movie(self, title, year, imdb, simple_info, info):
         self.start_time = time.time()
         sources = []
         if not self.auth:
