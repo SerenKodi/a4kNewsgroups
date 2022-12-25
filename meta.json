@@ -1,10 +1,10 @@
 {
   "author": "a4k-openproject",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "name": "a4kNewsgroups",
   "update_directory": "https://github.com/a4k-openproject/a4kNewsgroups/archive/",
   "remote_meta": "https://raw.githubusercontent.com/a4k-openproject/a4kNewsgroups/master/meta.json",
-  "seren_version": "2.2.3",
+  "seren_version": "3.0.0",
   "setup_extension": "configure.py",
   "services": [],
   "settings": [
